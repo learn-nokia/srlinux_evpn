@@ -1,7 +1,7 @@
 # Welcome to the Myriad 360 Nokia SRLinux Workshop
 
 
-Please contact [**Mohammad Zaman**](www.linkedin.com/in/mohammad-zaman-61496958), [**Amit Kumar**](https://www.linkedin.com/in/spiky27) or [**Frank Cordova**](https://www.linkedin.com/in/frank-cordova-955998111/) if you have any questions.
+Please contact [**Mohammad Zaman**](https://www.linkedin.com/in/mohammad-zaman-61496958), [**Amit Kumar**](https://www.linkedin.com/in/spiky27) or [**Frank Cordova**](https://www.linkedin.com/in/frank-cordova-955998111/) if you have any questions.
 
 
 Table of Contents
@@ -16,8 +16,9 @@ Table of Contents
 6. [Activity 2: Configure BGP-EVPN for Overlay](#activity-2-configure-bgp-evpn-for-overlay)  
 7. [Activity 3: Configure L2 EVPN-VxLAN](#activity-3-configure-l2-evpn-vxlan)  
 8. [Activity 4: Configure L3 EVPN-VxLAN](#activity-4-configure-layer-3-evpn-vxlan)
-9. [Explore This Lab with Pre-Configured Setup](#explore-this-lab-with-everything-pre-configured)  
-10. [Useful Links](#useful-links)
+9. [Troubleshooting Tools](#troubleshooting-tools)
+10. [Explore This Lab with Pre-Configured Setup](#explore-this-lab-with-everything-pre-configured) 
+11. [Useful Links](#useful-links)
 
 
 ## Lab Topology
@@ -37,7 +38,6 @@ Each workshop participant will be provided with the below topology consisting of
 | Client1/2/3/4 | Hosts |      | IPv4       | Linux/Alpine |
 
 
-
 ## Deploying the lab
 
 **Step-1: Clone the repo**
@@ -47,7 +47,6 @@ Use the below command to clone this repo to your VM.
 ```bash
 sudo git clone https://github.com/learn-nokia/srlinux_evpn.git
 ```
-
 
 **Step-2: Deploy the lab**
 
@@ -200,7 +199,6 @@ info interface *
 info routing-policy
 ```
 
-
 ### Verify reachability between devices
 
 After the lab is deployed, check reachability between leaf and spine devices using ping.
@@ -348,6 +346,9 @@ set / network-instance default protocols bgp neighbor 192:168:20::3 peer-group e
 set / network-instance default protocols bgp neighbor 192:168:20::3 export-policy [ export-underlay-v6 ]
 set / network-instance default protocols bgp neighbor 192:168:20::3 afi-safi ipv4-unicast admin-state disable
 ```
+```
+commit save
+```
 
 **Spine:**
 
@@ -370,6 +371,9 @@ set / network-instance default protocols bgp neighbor 192:168:10::2 afi-safi ipv
 set / network-instance default protocols bgp neighbor 192:168:20::2 peer-as 64502
 set / network-instance default protocols bgp neighbor 192:168:20::2 peer-group ebgp
 set / network-instance default protocols bgp neighbor 192:168:20::2 afi-safi ipv4-unicast admin-state disable
+```
+```
+commit save
 ```
 
 ### BGP Underlay Verification
@@ -459,6 +463,24 @@ IPv6 prefixes with active ECMP routes: 0
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
+### Verify the System Loopback Reahability to Remote Leaf
+
+Ping from Leaf1 to Leaf2 System Lookback interface
+
+```
+A:admin@leaf1# ping -c 3 2.2.2.2 network-instance default
+Using network instance default
+PING 2.2.2.2 (2.2.2.2) 56(84) bytes of data.
+64 bytes from 2.2.2.2: icmp_seq=1 ttl=63 time=2.70 ms
+64 bytes from 2.2.2.2: icmp_seq=2 ttl=63 time=2.65 ms
+64 bytes from 2.2.2.2: icmp_seq=3 ttl=63 time=2.92 ms
+
+--- 2.2.2.2 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 2.650/2.756/2.921/0.118 ms
+```
+
+
 
 ## Activity-2: Configure BGP-EVPN for Overlay
 
@@ -471,6 +493,8 @@ For establishing overlay BGP session between Leaf1 and Leaf2, we will use the sy
 ![image](images/bgp-overlay.jpg)
 
 ### BGP-EVPN Overlay Configurations
+
+*Note:* Make sure to commit the config after updating the configurations
 
 **Leaf1:**
 
@@ -940,6 +964,129 @@ default via 172.20.20.1 dev eth0
 When the ICMP ping packet reaches Leaf1, it checks the destination IP (10.90.1.1) against it's route-table. As seen in the above route-table output, the next-hop for this destination is a VXLAN tunnel to 2.2.2.2 (Leaf2) with VNI 200.
 
 The ICMP packet is encapsulated in VXLAN and sent to 2.2.2.2 (Leaf2). On Leaf2, the VXLAN encapsulation is removed and the ICMP packet is forwarded to the Client. The ping reponse follows similar path back to Leaf1.
+
+
+
+## Troubleshooting Tools
+
+### Traffic-Monitor
+
+Traffic-Monitor in Nokia SR Linux captures and inspects live packets on specified interfaces for troubleshooting. It lets you apply filters (like IP, ports, protocols) to analyze real traffic without needing external tools. It's a lightweight, built-in packet capture tool, similar to tcpdump, but optimized for SR Linux operations.
+
+```
+A:admin@leaf1# tools system traffic-monitor verbose destination-address 172.16.10.60
+Capturing on 'monit'
+ ** (tshark:14628) 19:05:37.590763 [Main MESSAGE] -- Capture started.
+ ** (tshark:14628) 19:05:37.590808 [Main MESSAGE] -- File: "/tmp/wireshark_monit98MD52.pcapng"
+Frame 1: 146 bytes on wire (1168 bits), 146 bytes captured (1168 bits) on interface monit, id 0
+    Section number: 1
+    Interface id: 0 (monit)
+        Interface name: monit
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Apr 28, 2025 19:05:38.300399953 UTC
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1745867138.300399953 seconds
+    [Time delta from previous captured frame: 0.000000000 seconds]
+    [Time delta from previous displayed frame: 0.000000000 seconds]
+    [Time since reference or first frame: 0.000000000 seconds]
+    Frame Number: 1
+    Frame Length: 146 bytes (1168 bits)
+    Capture Length: 146 bytes (1168 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:srlinux:eth:ethertype:ip:icmp:data]
+Srlinux Packet
+    Ingress Port: ethernet-1/10
+    Padding: 000000
+Ethernet II, Src: aa:c1:ab:33:47:47, Dst: aa:c1:ab:55:9f:11
+    Destination: aa:c1:ab:55:9f:11
+        Address: aa:c1:ab:55:9f:11
+        .... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: aa:c1:ab:33:47:47
+        Address: aa:c1:ab:33:47:47
+        .... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+Internet Protocol Version 4, Src: 172.16.10.50, Dst: 172.16.10.60
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 84
+    Identification: 0x21da (8666)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: ICMP (1)
+    Header Checksum: 0xac40 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 172.16.10.50
+    Destination Address: 172.16.10.60
+Internet Control Message Protocol
+    Type: 8 (Echo (ping) request)
+    Code: 0
+    Checksum: 0x1d1e [correct]
+    [Checksum Status: Good]
+    Identifier (BE): 5 (0x0005)
+    Identifier (LE): 1280 (0x0500)
+    Sequence Number (BE): 575 (0x023f)
+    Sequence Number (LE): 16130 (0x3f02)
+    Timestamp from icmp data: Apr 28, 2025 19:05:38.000000000 UTC
+    [Timestamp from icmp data (relative): 0.300399953 seconds]
+    Data (48 bytes)
+
+0000  83 91 04 00 00 00 00 00 10 11 12 13 14 15 16 17   ................
+0010  18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27   ........ !"#$%&'
+0020  28 29 2a 2b 2c 2d 2e 2f 30 31 32 33 34 35 36 37   ()*+,-./01234567
+        Data: 8391040000000000101112131415161718191a1b1c1d1e1f202122232425262728292a2b…
+        [Length: 48]
+```
+
+### Packet-Trace
+
+In Nokia SR Linux, packet-trace is a powerful troubleshooting tool that lets you simulate how a real packet would be handled by the system, without actually forwarding it through the datapath.
+
+
+```
+A:admin@leaf1# tools system packet-trace pcap-file /tmp/mo.pcap
++-------------------------------------------------------------------------------------------------------------------------------------------------+
+| Number      Time       Ingress port       Source      Destination    Protocol   Length                            Info                          |
++=================================================================================================================================================+
+| 1        0.000000000   ethernet-1/10   172.16.10.50   172.16.10.60   ICMP       146      Echo (ping) request  id=0x0005, seq=1740/52230, ttl=64 |
+| 2        1.024016053   ethernet-1/10   172.16.10.50   172.16.10.60   ICMP       146      Echo (ping) request  id=0x0005, seq=1741/52486, ttl=64 |
++-------------------------------------------------------------------------------------------------------------------------------------------------+
+Enter packet number (default: [1]): 1
+###[ Ethernet ]###
+  dst       = aa:c1:ab:55:9f:11
+  src       = aa:c1:ab:33:47:47
+  type      = IPv4
+###[ IP ]###
+     version   = 4
+     ihl       = 5
+     tos       = 0x0
+     len       = 84
+     id        = 9910
+     flags     = DF
+     frag      = 0
+     ttl       = 64
+     proto     = icmp
+     chksum    = 0xa764
+     src       = 172.16.10.50
+     dst       = 172.16.10.60
+     \options   \
+###[ ICMP ]###
+        type      = echo-request
+        code      = 0
+        chksum    = 0xa328
+        id        = 0x5
+        seq       = 0x6cc
+        unused    = ''
+```
 
 
 ## Explore this lab with everything pre-configured
