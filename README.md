@@ -1093,7 +1093,7 @@ Enter packet number (default: [1]): 1
 
 If you would like to explore all of the above without doing any manual configurations, we got you covered !
 
-Go to [Complete startup config](n92-evpn-lab/configs/fabric/startup-complete) to see the full configuration for each device.
+Go to [Complete startup config](srl-evpn-lab/configs/fabric/startup-complete) to see the full configuration for each device.
 
 In your topology file (srl-evpn.clab.yml), point the startup config file location to `configs/fabric/startup-complete/leaf1-startup-complete.cfg` (for Leaf1).
 
