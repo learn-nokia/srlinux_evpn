@@ -1,7 +1,7 @@
 # Welcome to the Myriad 360 Nokia SRLinux Workshop
 
-This workshop provides hands-on experience with Nokia SR Linux, covering essential CLI operations, datastores, BGP, and advanced EVPN configurations.  
-Participants will learn to build and troubleshoot Layer 2 and Layer 3 VxLAN overlays in a simulated data center environment.  
+This workshop provides hands-on experience with Nokia SR Linux, covering essential CLI operations, datastores, BGP, and advanced EVPN configurations. Participants will learn to build and troubleshoot Layer 2 and Layer 3 VxLAN overlays in a simulated data center environment.
+
 By the end of the session, attendees will have a practical understanding of Next Generation Data Center Network Fabric using SRLinux.
 
 Please contact [**Mohammad Zaman**](https://www.linkedin.com/in/mohammad-zaman-61496958), [**Amit Kumar**](https://www.linkedin.com/in/spiky27) or [**Frank Cordova**](https://www.linkedin.com/in/frank-cordova-955998111/) if you have any questions.
