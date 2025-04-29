@@ -3,15 +3,12 @@
 
 Please contact [**Mohammad Zaman**](https://www.linkedin.com/in/mohammad-zaman-61496958), [**Amit Kumar**](https://www.linkedin.com/in/spiky27) or [**Frank Cordova**](https://www.linkedin.com/in/frank-cordova-955998111/) if you have any questions.
 
-
-Table of Contents
-
 ## Table of Contents
 
 1. [Lab Topology](#lab-topology)  
 2. [Tools](#tools)  
 3. [Deploying the Lab](#deploying-the-lab)  
-4. [SR Linux Configuration Mode](#sr-linux-configuration-mode)  
+4. [SR Linux CLI](#sr-linux-cli)  
 5. [Activity 1: Configure BGP Underlay](#activity-1-configure-bgp-underlay)  
 6. [Activity 2: Configure BGP-EVPN for Overlay](#activity-2-configure-bgp-evpn-for-overlay)  
 7. [Activity 3: Configure L2 EVPN-VxLAN](#activity-3-configure-l2-evpn-vxlan)  
@@ -36,6 +33,7 @@ Each workshop participant will be provided with the below topology consisting of
 | Leaf2 | Leaf  | 65102     | IPv4/IPv6       | SR Linux |
 | Spine | Spine | 65000     | IPv4/IPv6       | SR Linux |
 | Client1/2/3/4 | Hosts |      | IPv4       | Linux/Alpine |
+
 
 
 ## Deploying the lab
@@ -215,7 +213,112 @@ Example on spine to Leaf1 using IPv6:
 ping6 -c 3 192:168:10::2 network-instance default
 ```
 
-## SR Linux Configuration Mode
+## 4 SR Linux CLI
+
+### 4.1 environment variable
+
+```
+--{ + running }--[  ]--
+A:admin@leaf1# environment show
+[alias]
+bgp_shortcut = "show network-instance default protocols bgp neighbor"
+
+[basic-prompt]
+value = "\n--{{ {banner}{startup_config_state}{modified_flags}{short_yang_models}{mode_and_session} }}--[ {pwc} ]--\n{short_redundancy}{hw_slot}:{aaa_user}@{host}# "
+
+[bottom-toolbar]
+value = "{banner}{startup_config_state}{commit_confirmed_with_remaining_time}|{time_24}"
+
+[cli-engine]
+type = "advanced"
+max-history-items = 1000
+history-filename = "~/.srlinux_history"
+completion-type = "smart"
+completion-ignore-case = false
+vi-editing-mode = false
+refresh-interval = 5.0
+
+[key-completer-limit]
+limit = 100
+
+[network-instance]
+value = ""
+
+[output-display-format]
+value = "text"
+
+[pagination]
+value = ""
+
+[prompt]
+value = "\n\n--{{ {banner}{startup_config_state}{modified_flags}{short_yang_models}{mode_and_session} }}--[ {pwc} ]--\n{short_redundancy}{hw_slot}:{aaa_user}@{host}# "
+
+[session-idle-timeout]
+value = ""
+
+[space-completion]
+enabled = false
+
+[yang-models]
+value = "srl"
+```
+
+### 4.2 Alias - Shortcuts
+
+Nokia SR Linux lets users create aliases to simplify frequently used or complex CLI commands. Aliases allow quicker command execution and improve efficiency by reducing repetitive typing.  
+
+In the below example:
+
+**alias** = bgp_shortcut </br>
+**mapped command** = show network-instance default protocols bgp neighbor
+
+```
+--{ + running }--[  ]--
+A:admin@leaf1# environment alias bgp_shortcut "show network-instance default protocols bgp neighbor"
+
+
+--{ + running }--[  ]--
+A:admin@leaf1# bgp_shortcut
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+BGP neighbor summary for network-instance "default"
+Flags: S static, D dynamic, L discovered by LLDP, B BFD enabled, - disabled, * slow
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
++--------------------+-----------------------------+--------------------+-------+-----------+----------------+----------------+--------------+-----------------------------+
+|      Net-Inst      |            Peer             |       Group        | Flags |  Peer-AS  |     State      |     Uptime     |   AFI/SAFI   |       [Rx/Active/Tx]        |
++====================+=============================+====================+=======+===========+================+================+==============+=============================+
+| default            | 2.2.2.2                     | evpn               | S     | 65500     | established    | 0d:8h:16m:34s  | evpn         | [7/7/7]                     |
+| default            | 192.168.10.3                | ebgp               | S     | 64500     | established    | 0d:8h:17m:4s   | ipv4-unicast | [1/1/1]                     |
+| default            | 192:168:10::3               | ebgp               | S     | 64500     | established    | 0d:8h:17m:8s   | ipv6-unicast | [1/1/1]                     |
+| default            | 2001::2                     | evpn               | S     | 65500     | established    | 0d:8h:16m:55s  | evpn         | [7/0/7]                     |
++--------------------+-----------------------------+--------------------+-------+-----------+----------------+----------------+--------------+-----------------------------+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Summary:
+4 configured neighbors, 4 configured sessions are established, 0 disabled peers
+0 dynamic peers
+```
+
+
+### 4.3 Cli Engines - Completion types
+
+Noklia SR Linux supports multiple CLI completion modes that enhance user efficiency by suggesting command options based on typed input. 
+
+These modes range from basic prefix matching to advanced smart and fuzzy suggestions tailored to the CLI context.
+
+```
+environment cli-engine completion-type
+```
+
+| **CLI Completion Type** | **Definition** |
+|--------------------------|----------------|
+| **prefix**               | The displayed options start with the letters you typed before pressing Tab. <br><br> This is the only valid CLI completion type for the basic CLI engine. |
+| **smart**                | The displayed options contain the letters you typed before pressing Tab. Preference is given to the following: <ul><li>Options that start with the letters you typed</li><li>Multi-word options where each word in the option starts with a letter you typed; for example, typing `ni` displays `network-instance` as an option.</li><li>Options that contain the letters you typed; for example, typing `inst` displays `network-instance` as an option.</li><li>Options that exist only at the current CLI level, rather than those that exist at every CLI level.</li></ul> This is the default CLI completion type for the advanced CLI engine. |
+| **substring**            | The displayed options contain the letters you typed as a string within the option name; for example, typing `stat` displays `modules-state`, `netconf-state`, and `statistics` as options. |
+| **fuzzy**                | SR Linux displays options that contain the letters you typed as a string, as well as options that are close; for example, typing `ntw` displays `network-instance` as an option. |
+
+
+### 4.4 Datastores
+
 
 To enter candidate configuration edit mode in SR Linux, use:
 
@@ -246,6 +349,7 @@ Here's a reference table with some commonly used commands.
 | Output modifiers | `<command> \| as {table\|json\|yaml}` |
 | Access Linux shell | `bash` |
 | Find a command | `tree flat detail \| grep <keyword>` |
+
 
 
 ## Activity-1: Configure BGP Underlay
@@ -1093,7 +1197,7 @@ Enter packet number (default: [1]): 1
 
 If you would like to explore all of the above without doing any manual configurations, we got you covered !
 
-Go to [Complete startup config](n92-evpn-lab/configs/fabric/startup-complete) to see the full configuration for each device.
+Go to [Complete startup config](srl-evpn-lab/configs/fabric/startup-complete) to see the full configuration for each device.
 
 In your topology file (srl-evpn.clab.yml), point the startup config file location to `configs/fabric/startup-complete/leaf1-startup-complete.cfg` (for Leaf1).
 
