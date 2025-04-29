@@ -1,5 +1,8 @@
 # Welcome to the Myriad 360 Nokia SRLinux Workshop
 
+This workshop provides hands-on experience with Nokia SR Linux, covering essential CLI operations, datastores, BGP, and advanced EVPN configurations.  
+Participants will learn to build and troubleshoot Layer 2 and Layer 3 VxLAN overlays in a simulated data center environment.  
+By the end of the session, attendees will have a practical understanding of Next Generation Data Center Network Fabric using SRLinux.
 
 Please contact [**Mohammad Zaman**](https://www.linkedin.com/in/mohammad-zaman-61496958), [**Amit Kumar**](https://www.linkedin.com/in/spiky27) or [**Frank Cordova**](https://www.linkedin.com/in/frank-cordova-955998111/) if you have any questions.
 
@@ -33,7 +36,6 @@ Each workshop participant will be provided with the below topology consisting of
 | Leaf2 | Leaf  | 65102     | IPv4/IPv6       | SR Linux |
 | Spine | Spine | 65000     | IPv4/IPv6       | SR Linux |
 | Client1/2/3/4 | Hosts |      | IPv4       | Linux/Alpine |
-
 
 
 ## Deploying the lab
@@ -214,6 +216,8 @@ ping6 -c 3 192:168:10::2 network-instance default
 ```
 
 ## 4 SR Linux CLI
+
+Nokia SR Linux is a modern, open, and modular network operating system built for next-generation data centers. It offers a programmable architecture with model-driven APIs, a flexible CLI, and powerful tools for automation and integration.
 
 ### 4.1 environment variable
 
