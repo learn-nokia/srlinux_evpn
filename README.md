@@ -142,7 +142,7 @@ ssh admin@leaf1
 To login to the client, identify the client hostname using the `sudo clab inspect --all` command above and then:
 
 ```bash
-sudo docker exec –it client3 sh
+sudo docker exec -it client3 sh
 ```
 
 ### Lab Default Startup Configuration
